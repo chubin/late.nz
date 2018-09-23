@@ -10,8 +10,8 @@ curl cheat.sh/latencies
 Or to run your own local copy:
 
 ```
-git clone https://github.com/chubin/latenci.es
-python latenci.es/bin/latencies.py
+git clone https://github.com/chubin/late.nz
+python late.nz/bin/latencies.py
 ```
 
 This is a console port of the Colin Scott's
