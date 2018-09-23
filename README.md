@@ -1,5 +1,5 @@
 
-![latenci.es output][https://raw.githubusercontent.com/chubin/latenci.es/master/share/latencies-screenshot.png]
+![latenci.es output](https://raw.githubusercontent.com/chubin/latenci.es/master/share/latencies-screenshot.png)
 
 To see the latencies
 
