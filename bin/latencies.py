@@ -17,7 +17,7 @@ import textwrap
 import re
 
 YEAR = datetime.datetime.now().year
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib'))
 import data
 
 # source of the block:
@@ -170,6 +170,8 @@ def main():
     columns[0] = columns[0][:-6] + footer
     columns[1] = columns[1][:-6] + [""]*4
 
+    print COLOR['dark_gray'] + "# Latency numbers every programmer should know " + COLOR['reset']
+    print
     for line in zip(*columns):
         print "".join(line)
 
