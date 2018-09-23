@@ -21,9 +21,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib
 import data
 
 # source of the block:
-# https://www.fileformat.info/info/unicode/block/block_elements/list.htm    
+# https://www.fileformat.info/info/unicode/block/block_elements/list.htm
 BLOCK = "▗▖"
-HALF_BLOCK= "▗ "
+HALF_BLOCK = "▗ "
 LANE_SIZE = 29
 
 COLOR = {
@@ -51,31 +51,30 @@ FACTOR_BY_UNIT = {
 }
 
 FOOTER = (
-    "# [github.com/chubin/latenci.es] [MIT License]",
+    "# [github.com/chubin/late.nz] [MIT License]",
     "# Console port of \"Jeff Dean's latency numbers\"",
     "# from [github.com/colin-scott/interactive_latencies]",
     "",
 )
 
-def format_ns(ns):
+def _format_ns(time_ns):
     suffixes = ['ns', 'us', 'ms', 's']
 
     index = 0
-    while ns >= 1000 and index < len(suffixes):
+    while time_ns >= 1000 and index < len(suffixes):
         index += 1
-        ns /= 1000
+        time_ns /= 1000
 
-    return "%s%s" % (ns, suffixes[index])
+    return "%s%s" % (time_ns, suffixes[index])
 
-def single_box(text):
-    # cutting off "single_box_"
-    color = text.group(0)[11:]
-    if color in COLOR:
-        return COLOR[color] + BLOCK + COLOR['reset']
-    else:
+def _render_block(number, color=None, caption=None):
+
+    def _single_box(text):
+        # cutting off "single_box_"
+        color = text.group(0)[11:]
+        if color in COLOR:
+            return COLOR[color] + BLOCK + COLOR['reset']
         return BLOCK
-
-def print_block(number, color=None, caption=None):
 
     number_int = int(number)
     if number - number_int > 0.5 or number_int == 0:
@@ -88,7 +87,7 @@ def print_block(number, color=None, caption=None):
     lane_size = LANE_SIZE
     size_x = 10
     answer = []
-    
+
     if color and color in COLOR:
         color_on = COLOR[color]
         color_off = COLOR['reset']
@@ -97,7 +96,7 @@ def print_block(number, color=None, caption=None):
         color_off = ''
 
     # creating block itself
-    for lines in range(number / size_x):
+    for _ in range(number / size_x):
         spaces = " "*(lane_size - size_x*2)
         answer += [BLOCK*size_x + spaces]
 
@@ -112,19 +111,21 @@ def print_block(number, color=None, caption=None):
     # creating caption
     if 'single_box_' in caption:
         spaces = " "*(LANE_SIZE-caption.index('single_box_')-2)
-        caption_block = [re.sub('single_box_[a-z]*', single_box, caption) + spaces]
+        caption_block = [re.sub('single_box_[a-z]*', _single_box, caption) + spaces]
     else:
         caption_strings = caption.split('|')
         caption_strings = list(itertools.chain(*[
-                    textwrap.wrap(x, width=LANE_SIZE-2) for x in caption_strings]))
+            textwrap.wrap(x, width=LANE_SIZE-2) for x in caption_strings]))
         caption_block = [x.ljust(lane_size) for x in caption_strings]
 
     answer = caption_block + answer
     return answer
 
-
-def main():
-    metrics = data.get_metrics(YEAR)
+def render(year=YEAR):
+    """
+    Render latencies for `year` and return result as a string
+    """
+    metrics = data.get_metrics(year)
 
     columns = []
     for block_unit in ['ns', '100ns', '10us', 'ms']:
@@ -138,7 +139,7 @@ def main():
                 continue
 
             color = COLOR_BY_UNIT[unit]
-            formatted_value  = format_ns(int(value))
+            formatted_value = _format_ns(int(value))
             factorized_value = value/FACTOR_BY_UNIT[unit]
 
             if title:
@@ -148,9 +149,9 @@ def main():
                     caption = "%s = %s" % (formatted_value, extra)
                 else:
                     caption = "%s" % formatted_value
-            
+
             blocks += [
-                print_block(factorized_value, color=color, caption=caption)
+                _render_block(factorized_value, color=color, caption=caption)
                 + [empty_line]
             ]
 
@@ -159,23 +160,23 @@ def main():
     max_column_size = max(len(column) for column in columns)
     empty_line = " "*(LANE_SIZE)
     columns = [column + [empty_line]*(max_column_size-len(column))
-                for column in columns]
+               for column in columns]
 
     footer = ["%s%s%s" % (
-                    COLOR['dark_gray'],
-                    line.ljust(LANE_SIZE*2),
-                    COLOR['reset'])
-                for line in FOOTER]
+        COLOR['dark_gray'],
+        line.ljust(LANE_SIZE*2),
+        COLOR['reset'])
+              for line in FOOTER]
 
     columns[0] = columns[0][:-6] + footer
     columns[1] = columns[1][:-6] + [""]*4
 
-    print COLOR['dark_gray'] + "# Latency numbers every programmer should know " + COLOR['reset']
-    print
-    for line in zip(*columns):
-        print "".join(line)
+    output = [
+        COLOR['dark_gray'] + "# Latency numbers every programmer should know " + COLOR['reset'],
+        "",
+    ] + ["".join(line) for line in zip(*columns)]
 
+    return "".join("%s\n" % x for x in output)
 
-
-
-main()
+if __name__ == '__main__':
+    sys.stdout.write(render())
