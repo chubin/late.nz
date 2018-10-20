@@ -96,7 +96,7 @@ def _render_block(number, color=None, caption=None):
         color_off = ''
 
     # creating block itself
-    for _ in range(number / size_x):
+    for _ in range(number // size_x):
         spaces = " "*(lane_size - size_x*2)
         answer += [BLOCK*size_x + spaces]
 
